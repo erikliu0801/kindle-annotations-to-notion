@@ -31,18 +31,15 @@ export class PuppeteerAdapter {
 
     let page = existingPage || (await browser.newPage());
 
-    // method 1: close all existing pages, then open a new one
+    /* method 1: close all existing pages, then open a new one */
     // const existingPages = await browser.pages();
     // existingPages.map((page) => page.close());
     // const page = await browser.newPage();
 
-    // method 2: reuse the existing page
+    /* method 2: reuse the existing page */
     // const [page] = await browser.pages();
 
-    await page.goto(url, {
-      waitUntil: "networkidle2",
-    });
-
+    await page.goto(url, { waitUntil: "networkidle2" });
     return page;
   };
 

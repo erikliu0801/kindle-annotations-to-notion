@@ -17,7 +17,7 @@ export class CredentialService {
       notion: {
         apiKey: process.env.NOTION_API_KEY as string,
         kindleDBId: process.env.NOTION_KINDLE_DB_ID as string,
-      }
+      },
     };
   }
 
@@ -34,12 +34,3 @@ export class CredentialService {
 
   getFromData = () => readFromFile("credentials.json", "data");
 }
-
-function test() {
-  const config = new CredentialService();
-  const kindle = config.getKindleCredentials();
-  console.log();
-  console.log(kindle);
-}
-
-// test();

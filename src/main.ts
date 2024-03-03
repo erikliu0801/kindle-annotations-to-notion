@@ -12,7 +12,7 @@ async function run() {
   const notion = new NotionService();
   await notion.syncKindleBooks(booksHighlights, {
     pageId: process.env.NOTION_KINDLE_PAGE_ID, // create a new database on this page
-    // dbId: process.env.NOTION_KINDLE_DB_ID, // sync to an existing database
+    dbId: process.env.NOTION_KINDLE_DB_ID, // sync to an existing database
   });
 
   process.exit(0);

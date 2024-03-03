@@ -30,11 +30,12 @@ export class KindleService {
   private login = async (
     email: string,
     password: string,
-    url: string = "https://read.amazon.com/kp/notebook"
+    url: string = "https://read.amazon.com/kp/notebook",
+    existingPage?: puppeteer.Page
   ) => {
     const browser = this.puppeteer;
 
-    let page = await browser.goToPage(url);
+    let page = await browser.goToPage(url, existingPage);
     let emailInput: puppeteer.ElementHandle<Element> | null = null;
     while (!emailInput) {
       try {
@@ -66,7 +67,7 @@ export class KindleService {
         console.log("arrived at notebooks page");
         arrived = true;
       } catch {
-        page = await this.login(email, password, url);
+        page = await this.login(email, password, url, page);
         console.log("retrying to arrive at notebooks page");
       }
     } while (!arrived);
@@ -290,9 +291,11 @@ export class KindleService {
           }
 
           const color = meta.split(" highlight")[0].trim();
-          const page = meta.includes("Page") ? +meta.split("Page:")[1].replace(',', '') : 0;
+          const page = meta.includes("Page")
+            ? +meta.split("Page:")[1].replace(",", "")
+            : 0;
           const location = meta.includes("Location")
-            ? +meta.split("Location:")[1].replace(',', '')
+            ? +meta.split("Location:")[1].replace(",", "")
             : 0;
 
           return { color, page, location };

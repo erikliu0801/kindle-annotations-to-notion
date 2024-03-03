@@ -1,9 +1,8 @@
+import type { CreatePageParameters } from "@notionhq/client/build/src/api-endpoints";
+import type { KindleBook, DatabaseProperties } from "../types";
+import { kindle2Notion } from "../types/transformer/kindle-notion";
 import { NotionAdapter } from "../adapters";
 import { kindleDatabaseProperties } from "../constants/kindle-notion";
-import { KindleBook } from "../types";
-import { DatabaseProperties } from "../types/notion";
-import { kindle2Notion } from "../types/transformer/kindle-notion";
-import { readFromFile } from "../utils";
 import _get from "lodash/get";
 
 export class NotionService {
@@ -15,6 +14,48 @@ export class NotionService {
     } else {
       this.notion = new NotionAdapter();
     }
+  }
+
+  private async createDatabasePage(
+    parentDbId: string,
+    dbPage: Partial<CreatePageParameters>
+  ) {
+    const blocks = structuredClone(dbPage.children) || [];
+
+    const newPage = await this.notion.createPage({
+      parent: { database_id: parentDbId },
+      icon: dbPage.icon,
+      cover: dbPage.cover,
+      properties: dbPage.properties!,
+      children: blocks.splice(0, 100),
+    });
+
+    const pageId = newPage.id;
+    while (blocks.length > 0) {
+      await this.notion.appendBlockChildren(pageId, blocks.splice(0, 100));
+    }
+  }
+
+  private async updateDatabasePage(
+    parentDbId: string,
+    oldPageId: string,
+    dbPage: Partial<CreatePageParameters>
+  ) {
+    /* Method 1: Delete old page and re-create */
+    await this.notion.deletePage(oldPageId);
+    await this.createDatabasePage(parentDbId, dbPage);
+
+    /* Method 2: Delete all blocks and re-create */
+    // error while deleting blocks
+    // const oldBlocks = await this.notion.getBlockChildren(pageId);
+    // const oldBlockIds = oldBlocks.results.map(b => b.id);
+    // const deleteBlockPromises = oldBlockIds.map(id => this.notion.deleteBlock(id));
+    // for (const p of deleteBlockPromises) {
+    //   try { await p; } catch { }
+    // }
+
+    // await this.notion.updatePageProperties(pageId, dbPage.properties!);
+    // await this.notion.appendBlockChildren(pageId, dbPage.children!);
   }
 
   async syncKindleBooks(
@@ -84,35 +125,11 @@ export class NotionService {
             console.log("Updating page", title);
 
             const { pageId } = dbPagesMap[title];
-            /* Method 1: Delete old page and re-create */
-            await this.notion.deletePage(pageId);
-            await this.notion.createPage({
-              parent: { database_id: dbId! },
-              icon: dbPage.icon,
-              cover: dbPage.cover,
-              properties: dbPage.properties!,
-              children: dbPage.children,
-            });
-
-            /* Method 2: Delete all blocks and re-create */
-            // error while deleting blocks
-            // const oldBlocks = await this.notion.getBlockChildren(pageId);
-            // const oldBlockIds = oldBlocks.results.map(b => b.id);
-            // const deleteBlockPromises = oldBlockIds.map(id => this.notion.deleteBlock(id));
-            // for (const p of deleteBlockPromises) {
-            //   try { await p; } catch { }
-            // }
-
-            // await this.notion.updatePageProperties(pageId, dbPage.properties!);
-            // await this.notion.appendBlockChildren(pageId, dbPage.children!);
+            await this.updateDatabasePage(dbId!, pageId, dbPage);
           } else {
             console.log("Creating page", title);
 
-            await this.notion.createPage({
-              parent: { database_id: dbId! },
-              properties: dbPage.properties!,
-              children: dbPage.children,
-            });
+            await this.createDatabasePage(dbId!, dbPage);
           }
         } catch {
           break;
@@ -129,39 +146,3 @@ export class NotionService {
     }
   }
 }
-
-async function test() {
-  const notion = new NotionAdapter();
-
-  // const pageId = "83fa45f349684832bb514d8d558c7745"; // target
-  // const newDB = await notion.createDatabase(pageId, KindleDabaseProperties, {
-  //   dbName: "Books",
-  //   iconUrl: "https://www.notion.so/favicon.ico",
-  //   // coverUrl: "https://www.notion.so/favicon.ico",
-  //   description: "Database for Kindle highlights"
-  // });
-
-  // const dbId = "752b3fe869524829a236f7562f921f4a"; // target
-  const dbId = "afeb258e43054c399ecc70f261e424e1"; // readwise
-  const pageId = "c5c0bdf864cc40a5b6928c2d86b74326"; // page item in database
-
-  // const response = await notion.queryDatabase({ database_id: dbId })
-  // const response = await notion.getDatabase(dbId);
-  // const response = await notion.updateDatabaseProperties(dbId, KindleDabaseProperties)
-  // const response = await notion.getPage(pageId)
-  const response = await notion.getBlockChildren(pageId);
-  console.log(response);
-}
-// test()
-
-async function test1() {
-  const notion = new NotionService();
-  const pageId = "83fa45f349684832bb514d8d558c7745"; // target
-  const booksAnnotations: KindleBook[] = JSON.parse(
-    readFromFile("books-highlights.json", "data")
-  );
-
-  await notion.syncKindleBooks(booksAnnotations, { pageId });
-}
-
-// test1();

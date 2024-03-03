@@ -1,9 +1,9 @@
-export * from "./credentials";
-export * from "./kindle";
 export {
-  Block,
-  BlockType,
-  CreatePageParams,
-  Emoji,
-  CreatePageProperties,
-} from "./notion";
+  KindleCredentials,
+  NotionCredentials,
+  ConfigCredentials,
+} from "./credentials";
+
+export { KindleBookAnnotation, KindleBook } from "./kindle";
+
+export { DatabaseProperties } from "./notion";

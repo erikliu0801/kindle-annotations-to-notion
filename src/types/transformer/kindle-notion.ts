@@ -1,8 +1,11 @@
-import { KindleBook, KindleBookAnnotation } from "../kindle";
-import { DatabaseProperties } from "../notion";
-import { BlockObjectRequest } from "@notionhq/client/build/src/api-endpoints";
-import { CreatePageParameters } from "@notionhq/client/build/src/api-endpoints";
-
+// type
+import type { KindleBook, KindleBookAnnotation } from "../kindle";
+import type { DatabaseProperties } from "../notion";
+import type {
+  CreatePageParameters,
+  BlockObjectRequest,
+} from "@notionhq/client/build/src/api-endpoints";
+// utils
 import _get from "lodash/get";
 
 const kindleBook2NotionProperties = (
