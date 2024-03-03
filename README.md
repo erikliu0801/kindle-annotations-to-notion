@@ -22,7 +22,7 @@ Go to [Notion Integrations](https://www.notion.so/my-integrations) and create a 
 ### Step 2. Create a new Notion database and copy the database id.
 
 You can use the database id created by Readwise.
-Alternatively, you can also copy the page id of the new database you will creat.
+Otherwise, you can also copy the page id of the new database you want to creat.
 Both of them need to connect the integration you created in step 1.
 
 ### Step 3. Clone this project and setup the environment.
